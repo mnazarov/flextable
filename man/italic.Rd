@@ -15,7 +15,7 @@ italic(x, i = NULL, j = NULL, italic = TRUE, part = "body")
 
 \item{italic}{boolean value}
 
-\item{part}{partname of the table (one of 'all', 'body', 'header')}
+\item{part}{partname of the table (one of 'all', 'body', 'header', 'footer')}
 }
 \description{
 change font decoration of selected rows and columns of a flextable.
@@ -24,3 +24,12 @@ change font decoration of selected rows and columns of a flextable.
 ft <- flextable(mtcars)
 ft <- italic(ft, italic = TRUE, part = "header")
 }
+\seealso{
+Other sugar functions for table style: \code{\link{align}},
+  \code{\link{bg}}, \code{\link{bold}},
+  \code{\link{color}}, \code{\link{empty_blanks}},
+  \code{\link{fontsize}}, \code{\link{font}},
+  \code{\link{padding}}, \code{\link{rotate}},
+  \code{\link{valign}}
+}
+\concept{sugar functions for table style}

@@ -15,7 +15,7 @@ color(x, i = NULL, j = NULL, color, part = "body")
 
 \item{color}{color to use as font color}
 
-\item{part}{partname of the table (one of 'all', 'body', 'header')}
+\item{part}{partname of the table (one of 'all', 'body', 'header', 'footer')}
 }
 \description{
 change font color of selected rows and columns of a flextable.
@@ -24,3 +24,12 @@ change font color of selected rows and columns of a flextable.
 ft <- flextable(mtcars)
 ft <- color(ft, color = "orange", part = "header")
 }
+\seealso{
+Other sugar functions for table style: \code{\link{align}},
+  \code{\link{bg}}, \code{\link{bold}},
+  \code{\link{empty_blanks}}, \code{\link{fontsize}},
+  \code{\link{font}}, \code{\link{italic}},
+  \code{\link{padding}}, \code{\link{rotate}},
+  \code{\link{valign}}
+}
+\concept{sugar functions for table style}

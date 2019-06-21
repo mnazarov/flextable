@@ -9,29 +9,40 @@
 #' computed.
 #'
 #' @details
-#' A \code{flextable} is made of 2 parts: header and body.
+#' A \code{flextable} is made of 3 parts: header, body and footer.
 #'
 #' Most functions have an argument named \code{part} that will be used
 #' to specify what part of of the table should be modified.
 #' @param data dataset
 #' @param col_keys columns names/keys to display. If some column names are not in
 #' the dataset, they will be added as blank columns by default.
-#' @param cwidth,cheight initial width and height to use for cell sizes.
+#' @param cwidth,cheight initial width and height to use for cell sizes in inches.
+#' @param defaults a list of default values for formats, supported options are
+#' \code{fontname}, \code{font.size}, \code{color} and \code{padding}.
+#' @param theme_fun a function theme to apply before returning the flextable.
+#' set to NULL for none.
+#' @note Function \code{regulartable} is maintained for compatibility with old codes
+#' mades by users but be aware it produces the same exact object than \code{flextable}.
 #' @examples
 #' ft <- flextable(mtcars)
 #' ft
 #' @export
 #' @importFrom stats setNames
-#' @importFrom purrr map
-flextable <- function( data, col_keys = names(data), cwidth = .75, cheight = .25 ){
+#' @importFrom gdtools font_family_exists
+flextable <- function( data, col_keys = names(data), cwidth = .75, cheight = .25,
+                       defaults = list(), theme_fun = theme_booktabs ){
 
+
+  stopifnot(is.data.frame(data), ncol(data) > 0 )
   if( any( duplicated(col_keys) ) ){
     stop("duplicated col_keys")
   }
+  if( inherits(data, "data.table") || inherits(data, "tbl_df") || inherits(data, "tbl") )
+    data <- as.data.frame(data, stringsAsFactors = FALSE)
 
   blanks <- setdiff( col_keys, names(data))
   if( length( blanks ) > 0 ){
-    blanks_col <- map(blanks, function(x, n) character(n), nrow(data) )
+    blanks_col <- lapply(blanks, function(x, n) character(n), nrow(data) )
     blanks_col <- setNames(blanks_col, blanks )
     data[blanks] <- blanks_col
   }
@@ -45,46 +56,85 @@ flextable <- function( data, col_keys = names(data), cwidth = .75, cheight = .25
 
   header <- complex_tabpart( data = header_data, col_keys = col_keys, cwidth = cwidth, cheight = cheight )
 
-  out <- list( header = header, body = body, col_keys = col_keys,
+  # header
+  footer_data <- header_data[FALSE, , drop = FALSE]
+  footer <- complex_tabpart( data = footer_data, col_keys = col_keys, cwidth = cwidth, cheight = cheight )
+
+  out <- list( header = header, body = body, footer = footer, col_keys = col_keys,
+               caption = list(value = NULL, style_id = NULL),
                blanks = blanks )
-  class(out) <- c("flextable", "complextable")
+  class(out) <- c("flextable")
+
+  # default values for formats
+  if( "fontname" %in% names(defaults) ){
+    font_family <- defaults$fontname
+  } else {
+    font_family <- ifelse( font_family_exists(font_family = "Roboto"), "Roboto", "Arial" )
+  }
+  if( "font.size" %in% names(defaults) ){
+    font.size <- defaults$font.size
+  } else {
+    font.size <- 11
+  }
+  if( "color" %in% names(defaults) ){
+    color <- defaults$color
+  } else {
+    color <- "#111111"
+  }
+  if( "padding" %in% names(defaults) ){
+    padding.left <- padding.right <- padding.bottom <- padding.top <- defaults$padding
+  } else {
+    padding.left <- padding.right <- 5
+    padding.bottom <- padding.top <- 2
+  }
 
   out <- style( x = out,
-                pr_p = fp_par(text.align = "right", padding = 2),
-                pr_c = fp_cell(border = fp_border()), part = "all")
-
+                pr_t = fp_text(
+                  font.family = font_family,
+                  font.size = font.size, color = color
+                ),
+                pr_p = fp_par(text.align = "right", padding.left = padding.left, padding.right = padding.right,
+                              padding.bottom = padding.bottom, padding.top = padding.top),
+                pr_c = fp_cell(border = fp_border(color = "transparent")), part = "all")
+  if( !is.null(theme_fun) )
+    out <- theme_fun(out)
   out
 }
 
-#' @importFrom htmltools HTML browsable
 #' @export
 #' @rdname flextable
-#' @param x flextable object
-#' @param preview preview type, one of c("html", "pptx", "docx").
-#' @param ... unused argument
-#' @importFrom utils browseURL
-#' @importFrom officer read_pptx add_slide read_docx
-print.flextable <- function(x, preview = "html", ...){
-  if (!interactive() ){
-    print(x$body$dataset)
-  } else {
-    if( preview == "html" )
-      print(tabwid(x))
-    else if( preview == "pptx" ){
-      doc <- read_pptx()
-      doc <- add_slide(doc, layout = "Title and Content", master = "Office Theme")
-      doc <- ph_with_flextable(doc, value = x, type = "body")
-      file_out <- print(doc, target = tempfile(fileext = ".pptx"))
-      browseURL(file_out)
-      return(invisible())
-    } else if( preview == "docx" ){
-      doc <- read_docx()
-      doc <- body_add_flextable(doc, value = x, align = "center")
-      file_out <- print(doc, target = tempfile(fileext = ".docx"))
-      browseURL(file_out)
-      return(invisible())
-    }
-  }
-
+#' @section qflextable:
+#' \code{qflextable} is a convenient tool to produce quickly
+#' a flextable for reporting
+qflextable <- function(data){
+  autofit(flextable(data))
 }
 
+#' @export
+#' @title set caption
+#' @description set caption value in flextable
+#' @param x flextable object
+#' @param caption caption value
+#' @note
+#' this will have an effect only when output is HTML.
+#' @examples
+#' ft <- flextable( head( iris ) )
+#' ft <- set_caption(ft, "my caption")
+#' ft
+set_caption <- function(x, caption){
+
+  if( !inherits(x, "flextable") ) stop("set_caption supports only flextable objects.")
+
+  if( !is.character(caption) && length(caption) != 1 ){
+    stop("caption should be a single character value")
+  }
+
+  x$caption <- list(value = caption)
+  x
+}
+
+#' @rdname flextable
+#' @export
+regulartable <- function( data, col_keys = names(data), cwidth = .75, cheight = .25 ){
+  flextable(data = data, col_keys = col_keys, cwidth = cwidth, cheight = cheight)
+}

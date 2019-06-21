@@ -4,7 +4,8 @@
 \alias{rotate}
 \title{rotate cell text}
 \usage{
-rotate(x, i = NULL, j = NULL, rotation, align = "center", part = "body")
+rotate(x, i = NULL, j = NULL, rotation, align = "center",
+  part = "body")
 }
 \arguments{
 \item{x}{a flextable object}
@@ -15,14 +16,36 @@ rotate(x, i = NULL, j = NULL, rotation, align = "center", part = "body")
 
 \item{rotation}{one of "lrtb", "tbrl", "btlr"}
 
-\item{align}{one of "center" or "top" or "bottom"}
+\item{align}{vertical alignment of paragraph within cell,
+one of "center" or "top" or "bottom".}
 
-\item{part}{partname of the table (one of 'all', 'body', 'header')}
+\item{part}{partname of the table (one of 'all', 'body', 'header', 'footer')}
 }
 \description{
 apply a rotation to cell text
 }
-\examples{
-ft <- flextable(mtcars)
-ft <- rotate(ft, rotation = "lrtb", align = "top", part = "header")
+\details{
+One common case is to rotate text to minimise column space. When rotating,
+paragraph alignments will remain the same and often right aligned (
+with an effect of top aligned when rotated). Use
+\code{align(..., align = "center")} to center rotated text.
+
+When function \code{autofit} is used, the rotation will be
+ignored.
 }
+\examples{
+ft <- flextable(head(iris))
+ft <- rotate(ft, rotation = "tbrl", part = "header", align = "center")
+ft <- align(ft, align = "center")
+ft <- autofit(ft)
+ft <- height(ft, height = max(dim_pretty(ft, part = "header")$widths), part = "header")
+}
+\seealso{
+Other sugar functions for table style: \code{\link{align}},
+  \code{\link{bg}}, \code{\link{bold}},
+  \code{\link{color}}, \code{\link{empty_blanks}},
+  \code{\link{fontsize}}, \code{\link{font}},
+  \code{\link{italic}}, \code{\link{padding}},
+  \code{\link{valign}}
+}
+\concept{sugar functions for table style}

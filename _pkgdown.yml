@@ -1,52 +1,102 @@
 title: flextable
 
 template:
-  package: ardatatemplate
+  package: ardown
   bootswatch: simplex
+
+home:
+  links:
+  - text: 'Visit <a href="https://www.ardata.fr"><img alt="ardata" src="https://www.ardata.fr/img/ardata-logo.svg" width="70"></a> website'
+    href: https://www.ardata.fr
 
 reference:
   - title: Create flextable
     contents:
     - flextable
-  - title: Headers
-    desc:  Add or modify flextable`s headers
+    - qflextable
+  - title: Headers and footers
+    desc:  Add or modify flextable`s headers or footers
     contents:
+    - add_header_row
+    - add_footer_row
+    - add_header_lines
+    - add_footer_lines
     - add_header
+    - add_footer
     - set_header_labels
     - set_header_df
+    - set_footer_df
+    - delete_part
   - title: Manage flextable layout
     contents:
     - starts_with("merge_")
-    - height
+    - starts_with("height")
     - width
     - autofit
     - dim.flextable
     - dim_pretty
+    - flextable_dim
+    - as_grouped_data
+    - xtable_to_flextable
+    - as_flextable
   - title: Format flextable
-    desc:  Modify flextable`s formatting properties, apply theme functions.
+    desc:  Modify flextable`s formatting properties.
     contents:
     - style
     - align
     - bg
+    - font
     - fontsize
     - italic
     - bold
     - color
     - padding
-    - border
+    - valign
     - rotate
     - empty_blanks
+  - title: borders
+    desc: Borders management
+    contents:
+    - starts_with("hline")
+    - starts_with("vline")
+    - starts_with("border")
+    - fix_border_issues
+  - title: Flextable themes
+    desc:  Apply theme functions.
+    contents:
     - starts_with("theme_")
   - title: Content
     desc:  Define flextable`s content
     contents:
-    - display
+    - starts_with("colformat_")
+    - compose
+    - starts_with("set_formatter")
+    - as_paragraph
+    - as_chunk
+    - as_image
+    - minibar
+    - linerange
+    - as_b
+    - as_bracket
+    - as_i
+    - as_sub
+    - as_sup
+    - hyperlink_text
+    - set_caption
+    - footnote
     - void
   - title: Output functions
     contents:
-    - tabwid
+    - print.flextable
+    - knit_print.flextable
     - body_add_flextable
-    - ph_with_flextable
+    - ph_with.flextable
+    - plot.flextable
+    - save_as_image
+    - save_as_html
+    - format.flextable
+    - htmltools_value
+    - as_raster
 
 navbar:
   title: flextable
@@ -54,12 +104,18 @@ navbar:
   left:
   - text: Overview
     href: articles/overview.html
+  - text: Selectors
+    href: articles/selectors.html
   - text: Layout
     href: articles/layout.html
-  - text: Format
+  - text: Format visual properties
     href: articles/format.html
+  - text: Format Content
+    href: articles/display.html
+  - text: Render as image
+    href: articles/offcran/images.html
   - text: Examples
-    href: articles/examples.html
+    href: articles/offcran/examples.html
   right:
   - text: Function reference
     href: reference/index.html

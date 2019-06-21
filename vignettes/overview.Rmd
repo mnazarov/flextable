@@ -10,58 +10,48 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, echo = FALSE, message=FALSE, warning=FALSE}
-dir.create("assets/docx", recursive = TRUE, showWarnings = FALSE)
-dir.create("assets/pptx", recursive = TRUE, showWarnings = FALSE)
-office_doc_link <- function(url){
-  stopifnot(requireNamespace("htmltools", quietly = TRUE))
-  htmltools::tags$p(  htmltools::tags$span("Download file "),
-    htmltools::tags$a(basename(url), href = url), 
-    htmltools::tags$span(" - view with"),
-    htmltools::tags$a("office web viewer", target="_blank", 
-      href = paste0("https://view.officeapps.live.com/op/view.aspx?src=", url)
-      ), 
-    style="text-align:center;font-style:italic;color:gray;"
-    )
-}
-```
+```{r, include=FALSE}
+library(flextable)
+library(magrittr)
+library(htmltools)
 
-```{r echo = FALSE}
 knitr::opts_chunk$set(
   message = FALSE,
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", 
+  eval = !is.null(knitr::opts_knit$get("rmarkdown.pandoc.to"))
 )
 ```
 
+
+
 ## Introduction 
 
-`flextable` can easily create reporting table from `data.frame`. You can merge cells, add header rows, change any format and specify how data should be displayed in cells. `flextable` objects can be rendered in HTML format but also in Microsoft Word and PowerPoint documents.
-
-Two functions are provided: `flextable` and `regulartable`.
-
-`flextable` function is producing flexible tables where each cell can contain 
-several chunks of text with their own set of formatting properties 
-(bold, font color, etc.). Function `display` lets customise text of cells (See 
-[display function](format.html#display-function)).
+`flextable` can easily create reporting table from `data.frame`. You 
+can merge cells, add header rows, add footer rows, change any format 
+and specify how data should be displayed in cells. Tables content can also 
+contain mixed type of content, text and images.
 
 
-`regulartable` function has been written because the first one is ressource 
-consumming. The only difference is that it is producing tables where cells 
-can contain only one chunk of text with its own set of formatting properties.
-Function `set_formatter` let customise text of cells.
 
-> The following table is made with `regulartable` and dataset data:
+![](https://www.ardata.fr/img/illustrations/html5.svg){ width=75px } ![](https://www.ardata.fr/img/illustrations/word.svg){ width=75px } ![](https://www.ardata.fr/img/illustrations/powerpoint.svg){ width=75px } ![](https://www.ardata.fr/img/illustrations/pdf.svg){ width=75px }
+
+
+
+
+`flextable` objects can be rendered in HTML format, Microsoft Word, Microsoft 
+PowerPoint and PDF.
+
+> The following table is made with function `flextable` and dataset data:
 
 ```{r}
 data <- iris[c(1:3, 51:53, 101:104),]
+data
 ```
 
 
 ```{r warning=FALSE, echo=FALSE}
 library(flextable)
-library(officer)
-
 typology <- data.frame(
   col_keys = c( "Sepal.Length", "Sepal.Width", "Petal.Length",
                 "Petal.Width", "Species" ),
@@ -69,121 +59,213 @@ typology <- data.frame(
   measure = c("Length", "Width", "Length", "Width", "Species"),
   stringsAsFactors = FALSE )
 
-ft <- regulartable(data, 
-          col_keys = c("Species", "sep_1", "Sepal.Length", "Sepal.Width", "sep_2",  "Petal.Length", "Petal.Width" ) ) %>% 
-  set_header_df(mapping = typology, key = "col_keys" ) %>% 
-  merge_h(part = "header") %>% 
-  merge_v(j = "Species", part = "body") %>% 
-  merge_v(j = "Species", part = "header") %>% 
-  theme_vanilla() %>% empty_blanks() %>% autofit() 
+ft <- flextable(
+  data, 
+  col_keys = c("Species", "sep_1", "Sepal.Length", "Sepal.Width", 
+               "sep_2",  "Petal.Length", "Petal.Width" ) )
 
-tabwid(ft)
+ft <- set_header_df(ft, mapping = typology, key = "col_keys" )
+ft <- merge_h(ft, part = "header")
+ft <- merge_v(ft, j = "Species", part = "body")
+ft <- merge_v(ft, j = "Species", part = "header")
+ft <- theme_booktabs(ft)
+ft <- empty_blanks(ft)
+ft <- fix_border_issues(ft)
+autofit(ft) 
 ```
-
----
-
 
 ## Getting started
 
-Let's have a step by step demo. First create a regulartable and change header font in bold. Function `tabwid` will wrap it in an *htmlwidget*.
+The main function is `flextable`.
 
-```{r warning=FALSE, message=FALSE}
+`flextable` function is producing flexible tables where each cell can contain 
+several chunks of text with their own set of formatting properties 
+(bold, font color, etc.). 
+
+The function is using default values to format the table. It is also using 
+a simple formatting function to create the paragraphs of text that will 
+be rendered in each cell. All these default values can be modified after 
+the flextable creation. 
+
+The following illustration is presenting most of the functions 
+available to format a flextable:
+
+![](https://www.ardata.fr/img/illustrations/flextable_functions.svg)
+
+
+Let's have a step by step demo. First create a flextable and change header font in bold. 
+
+```{r warning=FALSE}
 library(flextable)
 library(officer)
 
-myft <- regulartable(head(mtcars), 
-                  col_keys = c("am", "carb", "gear", "mpg", "drat" ))
-tabwid(myft)
+myft <- flextable(
+  head(mtcars), 
+  col_keys = c("am", "carb", "gear", "mpg", "drat" ))
+myft
 ```
 
-**flextable or regulartable function**: `regulartable` and `flextable` create a flextable object based on input data. Optional argument `col_keys` is used to only display a subset of columns. 
+**flextable**: it is creating a flextable object based on input data. 
+Optional argument `col_keys` is used to only display a subset of columns. 
 
-**tabwid function**: `tabwid` is the function that transform that *flextable* object into an html widget object (in r markdown documents or shiny applications). We need it here as we are working in an rmarkdown document.
+Functions `theme_` are sugar functions whose role is to apply a set 
+of formatting instructions to a flextable. For example, `theme_vanilla` 
+set specific borders, right align paragraphs and make headers bold. 
 
-Let's keep it simple and apply a theme to format the whole table. Functions `theme_` are sugar functions whose role is to apply a set of formatting instructions to a flextable. For example, `theme_vanilla` set specific borders, right align paragraphs and make headers bold. 
-
-```{r warning=FALSE, message=FALSE}
-myft <- myft %>% theme_vanilla()
-tabwid(myft)
+```{r warning=FALSE}
+myft <- theme_vanilla(myft)
+myft
 ```
 
 ### Layout
 
-> To learn more, see article about [layouts](./layout.html).
+Table layout can be modified. One can add or change header/footer rows, change cells height and width and merge cells. 
 
-Table layout can be modified. One can add or change header rows, change cells height and width and merge cells. Also, there is an important function named `autofit` (it adjusts widths and heights regarding to text widths and heights).
+Also, there is an important function named `autofit` (it adjusts widths and heights regarding to text widths and heights).
 
-We will use `merge_v` to merge identical consecutive cells of 
-columns "carb" and "am".
 
-```{r warning=FALSE, message=FALSE}
-myft <- myft %>%
-  merge_v(j = c("am", "carb") )
-tabwid(myft)
+```{r warning=FALSE}
+myft <- merge_v(myft, j = c("am", "carb") )
+myft <- set_header_labels( myft, carb = "# carb." )
+myft <- autofit(myft)
+myft
 ```
 
-Cells can be merged with functions `merge_none`, `merge_v` and `merge_h`.
-
-`set_header_labels` set labels:
-
-```{r warning=FALSE, message=FALSE}
-myft <- myft %>%
-  set_header_labels( carb = "# carb." ) %>% 
-  width(width = .75) # set width of all columns to .75 in
-tabwid(myft)
-```
-
-Headers can be modified with functions `set_header_df`, `set_header_labels` and `add_header`.
-
-`autofit` adjust widths and heights of cells. This should be the last operation as some operations make columns wider, e.g. changing font size, changing font weight. **`autofit` makes sure that any content is displayed as a single line of text.**
-
-```{r warning=FALSE, message=FALSE}
-myft <- myft %>% autofit()
-
-tabwid(myft)
-```
+To learn more, see article about [layouts](./layout.html).
 
 
-### Formating
+### Formatting
 
 > To learn more, see article about [format](./format.html).
 
-Many sugar functions can be used to format flextables: `bg`, `fontsize`, `italic`, `bold`, `color`, `padding`, `border`. 
-
-```{r}
-myft <- myft %>% italic(j = 1) %>% 
-  bg(bg = "#C90000", part = "header") %>% 
-  color(color = "white", part = "header") %>% 
-  border(border = fp_border(color = "orange"), part = "all")
-  
-tabwid(myft)
-```
+Many sugar functions can be used to format flextables: `bg()`, `fontsize()`, `italic()`, `bold()`, `color()`, `padding()`... 
 
 Conditional formatting can be made by using the selector arguments. All formatting functions are accepting selector arguments. 
 
-```{r warning=FALSE, message=FALSE}
-myft <- myft %>% 
-  color(~ drat > 3.5, ~ drat, color = "red") %>% 
-  bold(~ drat > 3.5, ~ drat, bold = TRUE) %>% 
-  autofit()
+```{r}
+myft <- italic(myft, j = 1)
+myft <- bg(myft, bg = "#C90000", part = "header")
+myft <- color(myft, color = "white", part = "header")
+myft <- color(myft, ~ drat > 3.5, ~ drat, color = "red")
+myft <- bold(myft, ~ drat > 3.5, ~ drat, bold = TRUE)
+myft <- autofit(myft)
+myft
+```
 
-tabwid(myft)
+### Keypoints
+
+* A flextable is an object that will produce a reporting table from a 
+`data.frame` object. 
+
+* A flextable is containing three parts, header, body and footer. 
+By default, there is only one header row containing the names of the data.frame. 
+The body part is containing data from the data.frame. The footer 
+part is not implemented by default.
+
+
+* Any formatting property related to text, paragraphs, 
+cells in the table can be modified. 
+
+* A cell is made of one single paragraph of text. Paragraphs 
+can contain several chunks of text with different formatting 
+but also images. 
+
+* The dimensions of the flextable elements, widths of columns and 
+heights of rows, are always defined. Beeing able to define the exact 
+size necessary to **display data on a single line** is a choice made 
+to make sure HTML, pptx, docx, images have all the same rendering, for 
+that exact widths and heights were needed. In most of cases, you should 
+not worry about that by only using `autofit()` as last operation. 
+See functions `autofit()` and `dim_pretty()`. 
+
+* Columns to display (`col_keys`) are by default all columns 
+of the data.frame but can be choosen from a subset of existing 
+columns and also unexisting columns. Unexisting columns are 
+containing blanks by default but this content can be customized.
+
+## Flextable rendering
+
+When working in RStudio, flextable will be printed in the rstudio viewer pane, the default format is HTML output. 
+
+We will use the following example:
+
+```{r}
+ft <- flextable(head(mtcars))
+ft <- autofit(ft)
+ft
+```
+
+### R Markdown documents
+
+One great feature of `flextables` is that it can be used in R Markdown 
+documents; HTML, Word, PowerPoint and PDF outputs are managed with 
+method `knitr::knit_print`. 
+
+Print the `flextable` object in the rmarkdown's \code{render} chunk 
+as demonstrated in this document (...generated from an R Markdown 
+document).
+
+```{r echo=FALSE}
+code <- pre(
+  code(
+    "---",
+    "title: 'flextable formatting'", 
+    "output: rmarkdown::html_document", 
+    "---",
+    "", 
+    "", 
+    "> this is how to print a flextable in a R Markdown document", 
+    "", "", 
+    "```{r}", 
+    "library(flextable)", 
+    "ft <- flextable(head(mtcars))", 
+    "ft <- autofit(ft)", 
+    "ft", 
+    "```"
+  )
+)
+knitr::knit_print(knitr::asis_output(as.character(code)))
 ```
 
 
-## Outputs
+#### pandoc versions
 
-### HTML
+Supported formats require some minimum [pandoc](https://pandoc.org/installing.html) versions: 
 
-Flextables can be inserted in r markdown documents and in shiny applications; in these cases, use `tabwid`. When working in RStudio, flextable will be printed in the rstudio viewer pane and call to `tabwid` is not necessary. Note that flextables are not designed to work with flexdashboard documents.
+|                    R Markdown output | pandoc version |                 comment                |
+|-------------------------------------:|:--------------:|:--------------------------------------:|
+|                  `rmarkdown::html_*` |     >= 1.12    |                                        |
+|           `rmarkdown::word_document` |     >= 2.0     | require a recent RStudio (> june 2018) |
+| `rmarkdown::powerpoint_presentation` |     >= 2.4     |       require pandoc installation      |
+|            `rmarkdown::pdf_document` |     >= 1.12    |  produces an image - limited support   |
 
-### PowerPoint or Word documents
+#### Notes about PDF
+
+* Using flextable with template `pdf_document` is OK if the flextable fits on one single page. 
+The PDF output is not a real latex output but a PNG image.
+* The best option to produce PDF documents containing flextable objects is by using 
+package `pagedown`. The only current known limitation is the inability to repeat header 
+rows along pages when the table need more than a page. 
+
+### PowerPoint or Word documents with officer
+
+#### In an interactive session
+
+If you have a Word or PowerPoint client on your machine, you can use the `print` method 
+with argument `preview` set to "pptx" or "docx". It will produce and open a 
+document where the table will be printed and ready to go to your clipboard. 
+
+```{r eval=FALSE}
+print(ft, preview = "docx")
+print(ft, preview = "pptx")
+```
+
+#### With package officer
 
 To add these objects in PowerPoint or Word documents, use functions:
-- `ph_with_flextable` or `ph_with_flextable_at` (PowerPoint)
-- `body_add_flextable` (Word)
 
-**`officer` package is required to create a PowerPoint or Word document.**
+- `ph_with()` (PowerPoint)
+- `body_add_flextable()` (Word)
 
 ```{r}
 library(officer)
@@ -191,30 +273,30 @@ library(officer)
 
 The following is producing a PowerPoint document:
 
-```{r}
-ft <- regulartable(head(mtcars)) %>% 
-  theme_booktabs() %>% 
-  autofit()
+```{r eval=FALSE}
+ppt <- read_pptx()
+ppt <- add_slide(ppt, layout = "Title and Content", master = "Office Theme")
+ppt <- ph_with(ppt, value = ft, location = officer::ph_location_left()) 
 
-ppt <- read_pptx() %>% 
-  add_slide(layout = "Title and Content", master = "Office Theme") %>% 
-  ph_with_flextable(value = ft, type = "body") 
-
-print(ppt, target = "assets/pptx/example.pptx") %>% invisible()
-```
-
-```{r echo=FALSE}
-office_doc_link( url = paste0( "https://davidgohel.github.io/flextable/articles/", "assets/pptx/example.pptx" ) )
+print(ppt, target = "example.pptx")
 ```
 
 The following is producing a Word document:
 
-```{r}
-doc <- read_docx() %>% 
-  body_add_flextable(value = ft)
-print(doc, target = "assets/docx/example.docx") %>% invisible()
+```{r eval=FALSE}
+doc <- read_docx()
+doc <- body_add_flextable(doc, value = ft)
+print(doc, target = "example.docx")
 ```
 
-```{r echo=FALSE}
-office_doc_link( url = paste0( "https://davidgohel.github.io/flextable/articles/", "assets/docx/example.docx" ) )
+## As an image
+
+To get an image file from a `flextable` object, use function `save_as_image`.
+
+```{r eval=FALSE}
+img_file <- tempfile(fileext = ".png")
+save_as_image(ft, path = img_file)
 ```
+
+flextable objects can also be ploted, see [Render as image](https://davidgohel.github.io/flextable/articles/offcran/images.html) for more details.
+

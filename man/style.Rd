@@ -4,8 +4,8 @@
 \alias{style}
 \title{Set flextable style}
 \usage{
-style(x, i = NULL, j = NULL, pr_t = NULL, pr_p = NULL, pr_c = NULL,
-  part = "body")
+style(x, i = NULL, j = NULL, pr_t = NULL, pr_p = NULL,
+  pr_c = NULL, part = "body")
 }
 \arguments{
 \item{x}{a flextable object}
@@ -20,12 +20,16 @@ style(x, i = NULL, j = NULL, pr_t = NULL, pr_p = NULL, pr_c = NULL,
 
 \item{pr_c}{object(s) of class \code{fp_cell}}
 
-\item{part}{partname of the table (one of 'all', 'body', 'header')}
+\item{part}{partname of the table (one of 'all', 'body', 'header' or 'footer')}
 }
 \description{
 Modify flextable text, paragraphs and cells formatting properties.
+It allows to specify a set of formatting properties for a selection instead
+of using multiple functions (.i.e \code{bold}, \code{italic}, \code{bg}) that
+should all be applied to the same selection of rows and columns.
 }
 \examples{
+library(officer)
 def_cell <- fp_cell(border = fp_border(color="#00FFFF"))
 
 def_par <- fp_par(text.align = "center")

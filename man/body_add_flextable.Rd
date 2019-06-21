@@ -2,23 +2,39 @@
 % Please edit documentation in R/body_add_flextable.R
 \name{body_add_flextable}
 \alias{body_add_flextable}
-\title{wml table code}
+\alias{body_replace_flextable_at_bkm}
+\title{add flextable into a Word document}
 \usage{
-body_add_flextable(x, value, align = "center", pos = "after")
+body_add_flextable(x, value, align = "center", pos = "after",
+  split = FALSE)
+
+body_replace_flextable_at_bkm(x, bookmark, value, align = "center",
+  split = FALSE)
 }
 \arguments{
-\item{x}{a docx object}
+\item{x}{an rdocx object}
 
 \item{value}{\code{flextable} object}
 
-\item{align}{left (default), center or right.}
+\item{align}{left, center (default) or right.}
 
 \item{pos}{where to add the flextable relative to the cursor,
 one of "after", "before", "on" (end of line).}
+
+\item{split}{set to TRUE if you want to activate Word
+option 'Allow row to break across pages'.}
+
+\item{bookmark}{bookmark id}
 }
 \description{
-produces the wml of a flextable
+add a flextable into a Word document.
 }
+\section{body_replace_flextable_at_bkm}{
+
+Use this function if you want to replace a paragraph containing
+a bookmark with a flextable. As a side effect, the bookmark will be lost.
+}
+
 \examples{
 library(officer)
 ft <- flextable(head(mtcars))
@@ -26,5 +42,7 @@ ft <- theme_zebra(ft)
 \donttest{ft <- autofit(ft)}
 doc <- read_docx()
 doc <- body_add_flextable(doc, value = ft)
-\donttest{print(doc, target = "test.docx")}
+fileout <- tempfile(fileext = ".docx")
+# fileout <- "test.docx" # uncomment to write in your working directory
+print(doc, target = fileout)
 }

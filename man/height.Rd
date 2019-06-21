@@ -2,9 +2,12 @@
 % Please edit documentation in R/flextable_sizes.R
 \name{height}
 \alias{height}
+\alias{height_all}
 \title{Set flextable rows height}
 \usage{
 height(x, i = NULL, height, part = "body")
+
+height_all(x, height, part = "all")
 }
 \arguments{
 \item{x}{flextable object}
@@ -16,11 +19,30 @@ height(x, i = NULL, height, part = "body")
 \item{part}{partname of the table}
 }
 \description{
-control rows height
+control rows height for a part
+of the flextable.
 }
+\section{height_all}{
+
+\code{height_all} is a convenient function for
+setting the same height to all rows (selected
+with argument \code{part}).
+}
+
 \examples{
 
 ft <- flextable(iris)
 ft <- height(ft, height = .3)
 
+
+ft <- flextable(iris)
+ft <- height_all(ft, height = .3)
+
 }
+\seealso{
+Other flextable dimensions: \code{\link{autofit}},
+  \code{\link{dim.flextable}}, \code{\link{dim_pretty}},
+  \code{\link{fit_to_width}}, \code{\link{flextable_dim}},
+  \code{\link{width}}
+}
+\concept{flextable dimensions}

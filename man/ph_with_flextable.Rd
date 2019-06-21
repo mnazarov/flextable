@@ -10,7 +10,7 @@ ph_with_flextable(x, value, type = "body", index = 1)
 ph_with_flextable_at(x, value, left, top)
 }
 \arguments{
-\item{x}{a pptx device}
+\item{x}{an rpptx device}
 
 \item{value}{\code{flextable} object}
 
@@ -19,10 +19,19 @@ ph_with_flextable_at(x, value, left, top)
 \item{index}{placeholder index (integer). This is to be used when a placeholder type
 is not unique in the current slide, e.g. two placeholders with type 'body'.}
 
-\item{left, top}{location of flextable on the slide}
+\item{left, top}{location of flextable on the slide in inches}
 }
 \description{
 add a flextable as a new shape in the current slide.
+These functions will be deprecated
+in the next release and function \code{\link{ph_with.flextable}} should
+be used instead.
+}
+\note{
+The width and height of the table can not be set with this function. Use
+functions \code{\link{width}}, \code{\link{height}}, \code{\link{autofit}}
+and \code{\link{dim_pretty}} instead. The overall size is resulting from
+cells, paragraphs and text properties (i.e. padding, font size, border widths).
 }
 \examples{
 library(officer)
@@ -33,6 +42,8 @@ doc <- add_slide(doc, layout = "Title and Content",
                  master = "Office Theme")
 doc <- ph_with_flextable(doc, value = ft, type = "body")
 doc <- ph_with_flextable_at(doc, value = ft, left = 4, top = 5)
-\donttest{print(doc, target = "test.pptx" )}
+fileout <- tempfile(fileext = ".pptx")
+# fileout <- "test.pptx" # uncomment to write in your working directory
+print(doc, target = fileout)
 }
 }

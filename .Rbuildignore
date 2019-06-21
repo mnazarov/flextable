@@ -1,7 +1,15 @@
 ^.*\.Rproj$
+^\.gitattributes$
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^\.travis\.yml$
 ^appveyor\.yml$
 ^docs$
 ^_pkgdown\.yml$
+^revdep$
+^CONDUCT\.md$
+^inst/mediasrc$
+^inst/medias$
+^cran-comments\.md$
+^ISSUE_TEMPLATE\.md$
+^vignettes/offcran$
